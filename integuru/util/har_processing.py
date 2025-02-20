@@ -114,19 +114,12 @@ def parse_har_file(har_file_path: str) -> Dict[Request, Dict[str, str]]:
 
 def build_url_to_req_res_map(req_res_dict: Dict[Request, Dict[str, str]]) -> Dict[str, Dict[str, Any]]:
     """
-    Builds a dictionary mapping URLs to {'request': formatted_request, 'response': response_dict}
+    Builds a dictionary mapping URLs to {'request': request, 'response': response_dict}
     """
-    url_to_req_res_dict = {}
-
-    for request, response in req_res_dict.items():
-        url = request.url
-        # If multiple requests to the same URL, you can choose to overwrite or store all
-        url_to_req_res_dict[url] = {
-            'request': request,
-            'response': response
-        }
-
-    return url_to_req_res_dict
+    return {
+        request.url: {'request': request, 'response': response}
+        for request, response in req_res_dict.items()
+    }
 
 
 def get_har_urls(har_file_path: str) -> List[Tuple[str, str, str, str]]:
