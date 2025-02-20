@@ -45,13 +45,15 @@ def format_request(har_request: Dict[str, Any]) -> Request:
     method = har_request.get("method", "GET")
     url = har_request.get("url", "")
 
+    # Convert excluded_header_keywords to set for faster lookup
+    excluded_header_keywords_set = set(keyword.lower() for keyword in excluded_header_keywords)
+
     # Store headers as a dictionary, excluding headers containing excluded keywords
-    headers = {
-        header.get("name", ""): header.get("value", "")
-        for header in har_request.get("headers", [])
-        if not any(keyword.lower() in header.get("name", "").lower() 
-                  for keyword in excluded_header_keywords)
-    }
+    headers = {}
+    for header in har_request.get("headers", []):
+        header_name = header.get("name", "").lower()
+        if not any(keyword in header_name for keyword in excluded_header_keywords_set):
+            headers[header.get("name", "")] = header.get("value", "")
 
     query_params_list = har_request.get("queryString", [])
     query_params = {param["name"]: param["value"] for param in query_params_list} if query_params_list else None
@@ -61,9 +63,8 @@ def format_request(har_request: Dict[str, Any]) -> Request:
 
     # Try to parse body as JSON if Content-Type is application/json
     if body:
-        headers_lower = {k.lower(): v for k, v in headers.items()}
-        content_type = headers_lower.get('content-type')
-        if content_type and 'application/json' in content_type.lower():
+        content_type = headers.get('content-type', '').lower()
+        if 'application/json' in content_type:
             try:
                 body = json.loads(body)
             except json.JSONDecodeError:
