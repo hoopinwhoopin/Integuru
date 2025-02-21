@@ -13,19 +13,17 @@ class Request:
     def to_curl_command(self) -> str:
         curl_parts = [f"curl -X {self.method}"]
 
-        for name, value in self.headers.items():
-            curl_parts.append(f"-H '{name}: {value}'")
+        # Adding headers
+        curl_parts.extend([f"-H '{name}: {value}'" for name, value in self.headers.items()])
 
+        # Adding query params
         if self.query_params:
             query_string = "&".join([f"{k}={v}" for k, v in self.query_params.items()])
-            self.url += f"?{query_string}"
+            self.url = f"{self.url}?{query_string}"
 
+        # Handling the body
         if self.body:
-            content_type = None
-            for k in self.headers:
-                if k.lower() == 'content-type':
-                    content_type = self.headers[k]
-                    break
+            content_type = self.headers.get('Content-Type','').lower()
 
             if isinstance(self.body, dict):
                 # Add Content-Type header if not present
