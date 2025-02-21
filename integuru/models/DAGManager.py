@@ -53,7 +53,10 @@ class DAGManager:
         :param node_id: ID of the node to retrieve.
         :return: Dictionary of node attributes or None if the node does not exist.
         """
-        return self.graph.nodes.get(node_id, None)
+        try:
+            return self.graph.nodes[node_id]
+        except KeyError:
+            return None
     
     def add_edge(self, from_node_id: str, to_node_id: str):
         self.graph.add_edge(from_node_id, to_node_id)
